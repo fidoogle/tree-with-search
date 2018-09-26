@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 /*** LOCAL MODULLE VARIABLES ***/
 var DASH_TAXONOMY = [];
 var TREE_DATA = {};
@@ -34,24 +36,7 @@ var ENDPOINTS = {
     treeData: {},
     flatData: []
   },
-  /*SANDBOX1: {
-    area: "CTDO",
-    name: "SANDBOX1",
-    url: URL_prefx + "taxonomies/sandbox1/_api" + URL_suffix,
-    testUrl: "https://storage.googleapis.com/dedashboard/mockdata/tax-sbox1.json",
-    actionItems: URL_prefx + "taxonomies/sandbox1/Lists/CTDO%20Tax%20Action%20Items/CTDOTaxonomyView.aspx#InplviewHashfdea1c95-6ae6-4aaf-8352-092ed35c5d30",
-    treeData: {},
-    flatData: []
-  },
-  SANDBOX2: {
-    area: "CTDO",
-    name: "SANDBOX2",
-    url: URL_prefx + "taxonomies/sandbox2/_api" + URL_suffix,
-    testUrl: "https://storage.googleapis.com/dedashboard/mockdata/tax-sbox2.json",
-    actionItems: URL_prefx + "taxonomies/sandbox2/Lists/CTDO_Tax_Action_Items/CTDOTaxonomyView.aspx#InplviewHash55df84e9-dbe0-468c-b9d9-5832eee6dda9",
-    treeData: {},
-    flatData: []
-  },*/
+
   DEV: {
     area: "CTDO",
     name: "DEV",
@@ -63,21 +48,10 @@ var ENDPOINTS = {
       "dev/itpx/Lists/CTDO%20Tax%20Action%20Items/CTDOTaxonomyView.aspx#InplviewHash4d758799-76ee-44f7-82f4-99785c3a9fab",
     treeData: {},
     flatData: []
-  } /*,
-  HR: {
-    area: "HR",
-    name: "HR", //TODO: remove $orderby=SortNum to do client-side sorting
-    url:
-      "http://team.usaa.com/sites/hr-ent/hrpx/_api/Web/Lists/GetByTitle('APQC')/items?$select=ID,Title,Numbering,SortNum&$orderby=SortNum&$top=1000",
-    testUrl: "https://storage.googleapis.com/dedashboard/mockdata/tax-hr.json",
-    treeData: {},
-    flatData: []
-  }*/
+  }
 };
 
 var CURRENT_TAXONOMY;
-
-function loadTaxonomy() {}
 
 function loadTaxonomies() {
   _.each(ENDPOINTS, function(val, key) {
@@ -85,7 +59,7 @@ function loadTaxonomies() {
   });
 }
 
-function showCountsForLevel(Counts, level) {
+export function showCountsForLevel(Counts, level) {
   var zeroDefaults = {
     level1: 0,
     level2: 0,
@@ -112,7 +86,7 @@ function updateViewIds() {
   }
 }
 
-function processData(data, archive) {
+export function processData(data, archive) {
   if (archive) {
     DASH_TAXONOMY = sortNumbering(data);
   } else {
@@ -134,28 +108,13 @@ function sortNumbering(data) {
   return data.sort(sortNumberingBy);
 }
 
-/*Returns Taxonomy Object based on environment*/
-/*async function getTaxonomyByBox() {
-  var taxonomy = ENDPOINTS.PROD;
-
-  if (window.location.href.indexOf("/dev/") != -1) {
-    taxonomy = ENDPOINTS.DEV;
-  } else if (window.location.href.indexOf("/sandbox1") != -1) {
-    taxonomy = ENDPOINTS.SANDBOX1;
-  } else if (window.location.href.indexOf("/sandbox2") != -1) {
-    taxonomy = ENDPOINTS.SANDBOX2;
-  }
-
-  var res = await getTaxonomy(taxonomy, false);
-  return res;
-}*/
-
 /*** LOCAL MODULE FUNCTIONS ***/
 function getTaxonomy(taxonomy, test) {
   var url = taxonomy.url;
   if (test) url = taxonomy.testUrl;
 
-  window.axios({
+  window
+    .axios({
       url: url,
       method: "get",
       headers: { accept: "application/json;odata=verbose" }
@@ -204,10 +163,14 @@ function sortNumberingBy(a, b) {
   var bLevels;
 
   if (a.Numbering) aLevels = a.Numbering.split(".");
-  else if (a.Process && a.Process.Numbering) aLevels = a.Process.Numbering.split("."); //For BDDS
+  else if (a.Process && a.Process.Numbering)
+    aLevels = a.Process.Numbering.split(".");
+  //For BDDS
   else aLevels = a.split(".");
   if (b.Numbering) bLevels = b.Numbering.split(".");
-  else if (b.Process && b.Process.Numbering) bLevels = b.Process.Numbering.split("."); //For BDDS
+  else if (b.Process && b.Process.Numbering)
+    bLevels = b.Process.Numbering.split(".");
+  //For BDDS
   else bLevels = b.split(".");
 
   var num1 = [];

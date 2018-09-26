@@ -1,5 +1,5 @@
 const ToolBar = {
-    template: `
+  template: `
     <div class="taxonomy-tool-bar sticky" id="sticky-toolbar">
         <div class="taxonomy-tool-bar-top">    
             <div class="tool-bar-search">
@@ -68,163 +68,178 @@ const ToolBar = {
     </div>
     `,
 
-    data() {
-        return {
-        exportItState: 0,
-        searchCount: null
-        };
+  data() {
+    return {
+      exportItState: 0,
+      searchCount: null
+    };
+  },
+  computed: {
+    ...Vuex.mapGetters([
+      "getAppId",
+      "getAnalytics",
+      "getExportItems",
+      "getExportButtonState",
+      "getZoom"
+    ]),
+
+    areaClass() {
+      return window.ENDPOINTS[this.selectedTaxonomy].area;
     },
-    computed: {
-        ...Vuex.mapGetters([
-        "getAppId",
-        "getAnalytics",
-        "getExportItems",
-        "getExportButtonState",
-        "getZoom"
-        ]),
-
-        areaClass() {
-        return window.ENDPOINTS[this.selectedTaxonomy].area;
-        },
-        selectedTaxonomy: {
-            get() {
-                return this.$store.getters.getSelectedTaxonomy;
-            },
-            set(value) {
-                this.$store.commit("updateSelectedTaxonomy", value);
-            }
-        },
-        search: {
-            get() {
-                return this.$store.getters.getSearch;
-            },
-            set(value) {
-                this.updateSearch(value);
-            }
-        },
-        checkAnalytics: {
-            get() {
-                return this.$store.getters.getAnalytics;
-            },
-            set(value) {
-                this.$store.commit("updateAnalytics", value);
-            }
-        },
-        checkFilterList: {
-            get() {
-                return this.$store.getters.getCheckFilterList;
-            },
-            set(value) {
-                this.$store.commit("toggleCheckFilterList", value);
-            }
-        },
-        results() {
-            return this.$store.getters.getResults;
-        },
-        Counts() {
-            try {
-                return window.ENDPOINTS[this.selectedTaxonomy].treeData.Counts;
-            } catch (e) {
-                return {
-                level1: 0,
-                level2: 0,
-                level3: 0,
-                level3m: 0,
-                level4: 0
-                };
-            }
-        },
-
-        isIE() {
-            return (window.navigator.userAgent.indexOf("MSIE ") > 0);
+    selectedTaxonomy: {
+      get() {
+        return this.$store.getters.getSelectedTaxonomy;
+      },
+      set(value) {
+        this.$store.commit("updateSelectedTaxonomy", value);
+      }
+    },
+    search: {
+      get() {
+        return this.$store.getters.getSearch;
+      },
+      set(value) {
+        if (value.length > 2 || value.length === 0) {
+          this.updateSearch(value);
         }
+      }
+    },
+    checkAnalytics: {
+      get() {
+        return this.$store.getters.getAnalytics;
+      },
+      set(value) {
+        this.$store.commit("updateAnalytics", value);
+      }
+    },
+    checkFilterList: {
+      get() {
+        return this.$store.getters.getCheckFilterList;
+      },
+      set(value) {
+        this.$store.commit("toggleCheckFilterList", value);
+      }
+    },
+    results() {
+      return this.$store.getters.getResults;
+    },
+    Counts() {
+      try {
+        return window.ENDPOINTS[this.selectedTaxonomy].treeData.Counts;
+      } catch (e) {
+        return {
+          level1: 0,
+          level2: 0,
+          level3: 0,
+          level3m: 0,
+          level4: 0
+        };
+      }
     },
 
-    methods: {
-        ...Vuex.mapMutations(["setExpandAll", "updateAnalytics", "updateExportButtonState", "updateSearch"]),
+    isIE() {
+      return window.navigator.userAgent.indexOf("MSIE ") > 0;
+    }
+  },
 
-        archive() {
-            let dataStr = JSON.stringify(
-                window.ENDPOINTS[this.selectedTaxonomy].flatData
-            );
-            //console.log("dataStr", dataStr);
-            let dataUri =
-                "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+  methods: {
+    ...Vuex.mapMutations([
+      "setExpandAll",
+      "updateAnalytics",
+      "updateExportButtonState",
+      "updateSearch"
+    ]),
 
-            let exportFileDefaultName = this.selectedTaxonomy + ".json";
+    archive() {
+      let dataStr = JSON.stringify(
+        window.ENDPOINTS[this.selectedTaxonomy].flatData
+      );
+      //console.log("dataStr", dataStr);
+      let dataUri =
+        "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
-            let linkElement = document.createElement("a");
-            linkElement.setAttribute("href", dataUri);
-            linkElement.setAttribute("download", exportFileDefaultName);
-            linkElement.click();
-        },
+      let exportFileDefaultName = this.selectedTaxonomy + ".json";
 
-        navigateTo(target) {
-            if (target === "grid") {
-                this.$router.push("/grid/");
-            } else if (target === "archive") {
-                this.$router.push("/archive/");
-            } else {
-                this.$router.push("/tree/");
-            }
-        },
+      let linkElement = document.createElement("a");
+      linkElement.setAttribute("href", dataUri);
+      linkElement.setAttribute("download", exportFileDefaultName);
+      linkElement.click();
+    },
 
-        collapseAll() {
-            this.setExpandAll(2);
-            this.updateSearch('');
-        },
+    navigateTo(target) {
+      if (target === "grid") {
+        this.$router.push("/grid/");
+      } else if (target === "archive") {
+        this.$router.push("/archive/");
+      } else {
+        this.$router.push("/tree/");
+      }
+    },
 
-        delayExpandAll(event) {
-            setTimeout(()=>{
-                this.setExpandAll(1);
-                this.updateSearchResults();
-                /*const that = this;
+    collapseAll() {
+      this.setExpandAll(2);
+      this.updateSearch("");
+    },
+
+    delayExpandAll(event) {
+      setTimeout(() => {
+        this.setExpandAll(1);
+        this.updateSearchResults();
+        /*const that = this;
                 event.target.addEventListener("input", _.debounce(
                     () => { that.setExpandAll(1); console.warn('input:',event.target.value); },
                     300)
                 );*/
-            }, 2000);
-        },
-
-        expandAll() {
-            this.setExpandAll(1);
-        },
-
-        exportIt() {
-            if (this.isIE) { // If Internet Explorer
-                alert("This functionality only works in Chrome. Please open this browser and try again.");
-            } else {
-                this.exportItState++;
-                this.updateExportButtonState(this.exportItState);
-                if (this.exportItState === 1) {
-                    //show checkboxes
-                    //color button
-                } else {
-                    if (this.getExportItems.length > 0) {
-                      exportToExcel(this.getExportItems, window.ENDPOINTS[this.selectedTaxonomy].treeData);
-                    }
-                    this.exportItState = 0;
-                    this.updateExportButtonState(this.exportItState);
-                }
-            }
-        },
-
-        updateSearchResults() {
-            //Allow DOM to be updated with search results
-            setTimeout(()=>{
-                this.searchCount = document.querySelectorAll('div.list-node:not(.filterList)').length;
-            }, 100);
-        },
-
-        updateViewIds() {
-            window.updateViewIds(this.getAppId);
-        }
+      }, 3000);
     },
 
-    watch: {
-        // whenever question changes, this function will run
-        search: function() {
-            this.updateSearchResults();
+    expandAll() {
+      this.setExpandAll(1);
+    },
+
+    exportIt() {
+      if (this.isIE) {
+        // If Internet Explorer
+        alert(
+          "This functionality only works in Chrome. Please open this browser and try again."
+        );
+      } else {
+        this.exportItState++;
+        this.updateExportButtonState(this.exportItState);
+        if (this.exportItState === 1) {
+          //show checkboxes
+          //color button
+        } else {
+          if (this.getExportItems.length > 0) {
+            exportToExcel(
+              this.getExportItems,
+              window.ENDPOINTS[this.selectedTaxonomy].treeData
+            );
+          }
+          this.exportItState = 0;
+          this.updateExportButtonState(this.exportItState);
         }
+      }
+    },
+
+    updateSearchResults() {
+      //Allow DOM to be updated with search results
+      setTimeout(() => {
+        this.searchCount = document.querySelectorAll(
+          "div.list-node:not(.filterList)"
+        ).length;
+      }, 100);
+    },
+
+    updateViewIds() {
+      window.updateViewIds(this.getAppId);
     }
+  },
+
+  watch: {
+    // whenever question changes, this function will run
+    search: function() {
+      this.updateSearchResults();
+    }
+  }
 };

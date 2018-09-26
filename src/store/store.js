@@ -1,4 +1,10 @@
-"use strict";
+import Vue from "vue";
+import Vuex from "vuex";
+import axios from "axios";
+import _ from "lodash";
+import * as Service from "@/services/Service";
+
+Vue.use(Vuex);
 
 function _toConsumableArray(arr) {
   if (Array.isArray(arr)) {
@@ -11,7 +17,7 @@ function _toConsumableArray(arr) {
   }
 }
 
-var treeSample = {
+const treeSample = {
   Numbering: "CTDO",
   Title: "Loading data...",
   Level: "root",
@@ -20,14 +26,7 @@ var treeSample = {
 
 Vue.use(Vuex);
 
-function createRouter(appId) {
-  return new VueRouter([
-    { path: "/stack/", component: StackStart },
-    { path: "*", redirect: "/stack/" }
-  ]);
-}
-
-function createStore(appId) {
+export default function createStore(appId) {
   return new Vuex.Store({
     state: {
       appId: appId,
@@ -40,8 +39,9 @@ function createStore(appId) {
       results: 0,
       selectedTaxonomy: "PROD",
       zoom: 0,
-      taxonomy: {}
+      taxonomy: treeSample
     },
+
     getters: {
       getAppId: function getAppId(state) {
         return state.appId;
@@ -81,6 +81,7 @@ function createStore(appId) {
         return state.exportButtonState;
       }
     },
+
     mutations: {
       setExpandAll: function setExpandAll(state, payload) {
         state.expandAll = payload;
@@ -93,7 +94,7 @@ function createStore(appId) {
       },
       setTaxonomy: function setTaxonomy(state, payload) {
         state.taxonomy = payload;
-        console.log("payload", payload);
+        console.log("state.taxonomy:", payload);
       },
       setZoom: function setZoom(state, payload) {
         state.zoom = payload;
@@ -128,6 +129,21 @@ function createStore(appId) {
         payload
       ) {
         state.exportButtonState = payload;
+      }
+    },
+
+    actions: {
+      fetchTaxonomy({ commit }) {
+        return axios
+          .get("/tax-prod.json") //return promise
+          .then(function(response) {
+            const result = Service.processData(response.data); //destructure returned object
+            commit("setTaxonomy", result.treeData);
+          })
+          .catch(function(error) {
+            console.warn("loading test data...");
+            commit("setTaxonomy", treeSample);
+          });
       }
     }
   });
